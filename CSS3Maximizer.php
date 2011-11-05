@@ -1,5 +1,96 @@
 <?php
 
+/*
+
+	CSS3Maximizer : v0.1 : mudcu.be
+	------------------------------------
+	Adds compatibility for vendors through proprietary CSS properties.  No hassle!  
+	Use your favorite syntax and CSS3Maximizer fills in the holes.
+	
+
+	CSS3 Color Module
+	------------------
+	#00FF00 // all browsers
+	hsl(120, 100%, 50%); // 
+	hsla(120, 100%, 50%, 1); //
+	rgb(0, 255, 0); //
+	rgb(0, 100%, 0); //
+	rgba(0, 255, 0%, 1); //
+	rgba(0, 100%, 0%, 1); //
+	
+
+	CSS3 Gradient Module
+	---------------------
+	linear-gradient(yellow, blue);
+	linear-gradient(to top, blue, yellow);
+	linear-gradient(180deg, yellow, blue);
+	linear-gradient(to bottom, yellow 0%, blue 100%);
+	-webkit-gradient(linear, left top, left bottom, color-stop(0%, #444444), color-stop(100%, #999999)); // Saf4+, Chrome
+	-webkit-gradient(linear, left top, left bottom, from(#444444), to(#999999)); // Saf4+, Chrome
+	-webkit-linear-gradient(top, #444444, #999999); // Chrome 10+, Saf5.1+
+	-moz-linear-gradient(top, #444444, #999999); // FF3.6
+	-ms-linear-gradient(top, #444444, #999999); // IE10
+	-o-linear-gradient(top, #444444, #999999); // Opera 11.10+
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#444444', EndColorStr='#999999'); // IE6–IE9
+
+
+	CSS3 Properties
+	----------------
+	background-clip
+	----------------
+		   -moz-background-clip: padding; 
+		-webkit-background-clip: padding-box;
+				background-clip: padding-box;
+
+	background-size
+	----------------
+		   -moz-background-size: 100% 100%; // FF3.6
+		-webkit-background-size: 100% 100%; // Saf3-4
+				background-size: 100% 100%; // Opera, IE9, Saf5, Chrome, FF4
+
+	border-radius
+	--------------
+			 -moz-border-radius: 12px; // FF1-3.6
+		  -webkit-border-radius: 12px; // Saf3-4, iOS 1-3.2, Android <1.6
+				  border-radius: 12px; // Opera 10.5, IE9, Saf5, Chrome, FF4, iOS 4, Android 2.1+
+
+	box-shadow
+	-----------
+				-moz-box-shadow: 0px 0px 4px #ffffff; // FF3.5 - 3.6
+			 -webkit-box-shadow: 0px 0px 4px #ffffff; // Saf3.0+, Chrome
+					 box-shadow: 0px 0px 4px #ffffff; // Opera 10.5, IE9, FF4+, Chrome 10+
+
+	transition
+	-----------
+				-moz-transition: all 0.3s ease-out;  // FF4+
+				  -o-transition: all 0.3s ease-out;  // Opera 10.5+
+			 -webkit-transition: all 0.3s ease-out;  // Saf3.2+, Chrome
+				 -ms-transition: all 0.3s ease-out;  // IE10?
+					 transition: all 0.3s ease-out;  
+
+	transform
+	----------
+				 -moz-transform: rotate(7.5deg);  // FF3.5+ 
+				   -o-transform: rotate(7.5deg);  // Opera 10.5 
+			  -webkit-transform: rotate(7.5deg);  // Saf3.1+, Chrome 
+				  -ms-transform: rotate(7.5deg);  // IE9 
+					  transform: rotate(7.5deg);  
+	user-select
+	------------
+					user-select: none;
+			 -khtml-user-select: none;
+			   -moz-user-select: none;
+				 -o-user-select: none;
+			-webkit-user-select: none;
+
+
+	TODO
+	-----
+	Maximize filter "opacity" for Internet Explorer:
+		opacity: 0 === filter: alpha(opacity=0);
+
+*/
+
 class CSS3Maximizer {
 	private $ColorSpace;
 	private $code;
@@ -108,8 +199,8 @@ class CSS3Maximizer {
 		"-webkit-gradient",
 		"-webkit-linear-gradient",
 		"-moz-linear-gradient",
-		"-ms-gradient",
-		"-o-gradient",
+		"-ms-linear-gradient",
+		"-o-linear-gradient",
 		"linear-gradient",
 		"filter"
 	);
@@ -286,6 +377,9 @@ class CSS3Maximizer {
 	}
 	
 	private function Webkit_to_W3C_Gradient($value) {
+	
+		///--- webkit supports out-of-order color-stops (others fail)... 
+	
 		array_shift($value); // type of gradient [assume linear]
 		$start = explode(" ", array_shift($value));
 		$end = explode(" ", array_shift($value));
@@ -321,14 +415,15 @@ class CSS3Maximizer {
 			if ($type == "from") {
 				$position = "0%";
 				$color = substr($key, 0, -1);
-				$first = $color;
 			} else if ($type == "to") {
 				$position = "100%";
 				$color = substr($key, 0, -1);
-				$last = $color;
 			} else {
 				$key = explode(",", $key, 2);
 				$position = $key[0];
+				if (!strpos($position, "%")) {
+					$position = round($position * 100) . "%";
+				}
 				$color = substr($key[1], 0, -1);
 			}
 			$color = $this->parseColor($color);
@@ -340,7 +435,7 @@ class CSS3Maximizer {
 			array_push($moz, $color["hex"] . " " . $position);
 		}
 		return Array(
-			"microsoft" => Array( $first, $last ),
+			"microsoft" => Array( substr(reset($moz),0,7), substr(end($moz),0,7) ),
 			"moz" => $start . ", " . implode($moz, ", "),
 			"w3c" => $start . ", " . implode($values, ", ")
 		);
@@ -377,8 +472,10 @@ class CSS3Maximizer {
 				$position = round($n / $count * 100) . '%';
 			}
 			if ($n === 0) {
+				$first = $color;
 				array_push($values, "from({$color})");
 			} else if ($n === $count) {
+				$last = $color;
 				array_push($values, "to({$color})");
 			} else {
 				array_push($values, "color-stop({$position}, {$color})");
@@ -470,9 +567,12 @@ class CSS3Maximizer {
 
 	/* Generate compatibility between vendors */
 	
-	public function clean($css, $compress = false) {
+	public function clean($config) {
+		$css = isset($config['css']) ? $config['css'] : '';
+		$url = isset($config['url']) ? $config['url'] : '';
+		$compress = isset($config['compress']) ? $config['compress'] : '';
 		// load from file and write file
-		if(is_file($css)) {
+		if (strpos($css, ".css") && is_file($css)) {
 			$this->code = file_get_contents($css);
 		} else {
 			$this->code = $css;
@@ -492,9 +592,13 @@ class CSS3Maximizer {
 				$type = $value["type"];
 				$value = $value["value"];
 				if(in_array($type, $this->defGradientProperties)) {
-					if (strpos($value, "gradient") !== false) { // background-gradient
+					if (substr(trim($value), 0, 4) === "url(") {
+						$value = substr(trim($value), 5, -1);
+						$value = str_replace(Array("'",'"'), Array(''), $value);
+						$value = 'url("' . $url . $value . '")';
+					} else if (strpos($value, "gradient") !== false) { // background-gradient
 						$value = $this->parseGradient($type, $value);
-					} else if (strpos($value, "url") === false) { // background-color as "background"
+					} else { // background-color as "background"
 						$doFallback = in_array($type, $this->defColorFallback);
 						$value = $this->parseColors($this->splitByColor($value), $doFallback);
 					}
@@ -549,6 +653,8 @@ class CSS3Maximizer {
 							$value
 						);
 						$merged = true;
+					} else {
+						
 					}
 				}
 				if ($merged === false) {
