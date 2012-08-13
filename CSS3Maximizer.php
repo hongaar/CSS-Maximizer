@@ -4,20 +4,20 @@
 
 	CSS3Maximizer : v0.1 : mudcu.be
 	------------------------------------
-	Adds compatibility for vendors through proprietary CSS properties.  No hassle!  
+	Adds compatibility for vendors through proprietary CSS properties.  No hassle!
 	Use your favorite syntax and CSS3Maximizer fills in the holes.
-	
+
 
 	CSS3 Color Module
 	------------------
 	#00FF00 // all browsers
-	hsl(120, 100%, 50%); // 
+	hsl(120, 100%, 50%); //
 	hsla(120, 100%, 50%, 1); //
 	rgb(0, 255, 0); //
 	rgb(0, 100%, 0); //
 	rgba(0, 255, 0%, 1); //
 	rgba(0, 100%, 0%, 1); //
-	
+
 
 	CSS3 Gradient Module
 	---------------------
@@ -38,7 +38,7 @@
 	----------------
 	background-clip
 	----------------
-		   -moz-background-clip: padding; 
+		   -moz-background-clip: padding;
 		-webkit-background-clip: padding-box;
 				background-clip: padding-box;
 
@@ -66,15 +66,15 @@
 				  -o-transition: all 0.3s ease-out;  // Opera 10.5+
 			 -webkit-transition: all 0.3s ease-out;  // Saf3.2+, Chrome
 				 -ms-transition: all 0.3s ease-out;  // IE10?
-					 transition: all 0.3s ease-out;  
+					 transition: all 0.3s ease-out;
 
 	transform
 	----------
-				 -moz-transform: rotate(7.5deg);  // FF3.5+ 
-				   -o-transform: rotate(7.5deg);  // Opera 10.5 
-			  -webkit-transform: rotate(7.5deg);  // Saf3.1+, Chrome 
-				  -ms-transform: rotate(7.5deg);  // IE9 
-					  transform: rotate(7.5deg);  
+				 -moz-transform: rotate(7.5deg);  // FF3.5+
+				   -o-transform: rotate(7.5deg);  // Opera 10.5
+			  -webkit-transform: rotate(7.5deg);  // Saf3.1+, Chrome
+				  -ms-transform: rotate(7.5deg);  // IE9
+					  transform: rotate(7.5deg);
 	user-select
 	------------
 					user-select: none;
@@ -94,13 +94,13 @@
 class CSS3Maximizer {
 	private $ColorSpace;
 	private $code;
-	
+
 	public function __construct() {
 		$this->ColorSpace = new ColorSpace;
 	}
 
 	/* Direct conversions of properties between vendors */
-	
+
 	private $defAlias = Array(
 		"background-clip" => Array(
 			"background-clip",
@@ -162,23 +162,23 @@ class CSS3Maximizer {
 			"-webkit-user-select"
 		)
 	);
-	
+
 	private $defStaticProps = Array(
 		"0",
 		"none",
 		"transparent",
 		"inherit"
 	);
-	
+
 	// Color Properties
-	
+
 	private $defColorFallback = Array(
 		"color", // single value, rgba with hex fallback
 		"background-color", // single value, rgba with hex fallback
-		"border", // multiple values, rgba with hex fallback	
+		"border", // multiple values, rgba with hex fallback
 		"border-color" // multiple values, rgba with hex fallback
 	);
-	
+
 	private $defColorProperties = Array(
 		"color", // single value, rgba with hex fallback
 		"background-color", // single value, rgba with hex fallback
@@ -187,14 +187,14 @@ class CSS3Maximizer {
 		"box-shadow", // multiple values, can always use rgba
 		"text-shadow" // multiple values, can always use rgba
 	);
-	
+
 	// Gradient Properties
-	
+
 	private $defGradientProperties = Array(
 		"background",
 		"background-image"
 	);
-	
+
 	private $defGradientLinear = Array(
 		"-webkit-gradient",
 		"-webkit-linear-gradient",
@@ -204,13 +204,13 @@ class CSS3Maximizer {
 		"linear-gradient",
 		"filter"
 	);
-	
+
 	/* Color parsing and standardization */
-	
+
 	private function splitByColor($value) {
 		$values = Array();
 		while(strlen($value)) {
-			$ishex = strpos($value, "#"); 
+			$ishex = strpos($value, "#");
 			$isother = strpos($value, ")");
 			if ($ishex === false) $ishex = 99999999999;
 			if ($isother === false) $isother = 99999999999;
@@ -230,7 +230,7 @@ class CSS3Maximizer {
 		}
 		return $values;
 	}
-	
+
 	private function parseColors($colors, $doFallback = false) {
 		$fallback = Array();
 		foreach ($colors as $key => $value) {
@@ -268,7 +268,7 @@ class CSS3Maximizer {
 		$colors = implode($colors, ", ");
 		$fallback = implode($fallback, ", ");
 		if ($doFallback && $colors !== $fallback) { // include fallback
-			return Array( 
+			return Array(
 				"hex" => $fallback,
 				"rgba" => $colors
 			);
@@ -276,7 +276,7 @@ class CSS3Maximizer {
 			return $colors;
 		}
 	}
-		
+
 	private function parseColor($color) {
 		$color = trim($color);
 		if (strpos($color, "(")) { // rgb, rgba, hsl or hsla
@@ -328,13 +328,13 @@ class CSS3Maximizer {
 			);
 		}
 	}
-	
+
 	/* Gradient parsing and standardization */
-	
+
 	private function splitGradient($value) {
 		$values = Array();
 		while(strlen($value)) {
-			$ishex = strpos($value, ","); 
+			$ishex = strpos($value, ",");
 			$isother = strpos($value, "(");
 			if ($ishex === false) $ishex = 99999999999;
 			if ($isother === false) $isother = 99999999999;
@@ -360,7 +360,7 @@ class CSS3Maximizer {
 		}
 		return $values;
 	}
-	
+
 	private function Webkit_Gradient_Position($value) {
 		switch($value) {
 			case "top":
@@ -375,11 +375,11 @@ class CSS3Maximizer {
 				return Array();
 		}
 	}
-	
+
 	private function Webkit_to_W3C_Gradient($value) {
-	
-		///--- webkit supports out-of-order color-stops (others fail)... 
-	
+
+		///--- webkit supports out-of-order color-stops (others fail)...
+
 		array_shift($value); // type of gradient [assume linear]
 		$start = explode(" ", array_shift($value));
 		$end = explode(" ", array_shift($value));
@@ -392,12 +392,12 @@ class CSS3Maximizer {
 		} else if (!$aIsSame && !$bIsSame) { // convert to angle
 			$p1 = array_merge(
 				Array( "x" => 0, "y" => 0 ),
-				$this->Webkit_Gradient_Position($start[0]), 
+				$this->Webkit_Gradient_Position($start[0]),
 				$this->Webkit_Gradient_Position($start[1])
 			);
 			$p2 = array_merge(
 				Array( "x" => 0, "y" => 0 ),
-				$this->Webkit_Gradient_Position($end[0]), 
+				$this->Webkit_Gradient_Position($end[0]),
 				$this->Webkit_Gradient_Position($end[1])
 			);
 			$dy = $p2[y] - $p1[y];
@@ -440,7 +440,7 @@ class CSS3Maximizer {
 			"w3c" => $start . ", " . implode($values, ", ")
 		);
 	}
-	
+
 	private function W3C_to_Webkit_Gradient($value) {
 		$start = array_shift($value);
 		switch ($start) {
@@ -486,7 +486,7 @@ class CSS3Maximizer {
 			"webkit" => "linear, " . $start . implode($values, ", ")
 		);
 	}
-		
+
 	private function parseGradient($property, $value) {
 		$type = substr($value, 0, strpos($value, "("));
 		$tmp = substr($value, strpos($value, "(") + 1, -1);
@@ -510,9 +510,9 @@ class CSS3Maximizer {
 		}
 		return $values;
 	}
-	
+
 	/* Convert CSS to Object */
-	
+
 	private function ParseCSS($str) {
 		$css = Array();
 		$str = preg_replace("/\/\*(.*)?\*\//Usi", "", $str);
@@ -548,14 +548,18 @@ class CSS3Maximizer {
 					if (!isset($css[$key])) {
 						$css[$key] = array();
 					}
+					// only match ; without surrounding quotes
+					$codestr = preg_replace('/(?:["\'].*(;).*["\'])/e', 'str_replace(";","{{{RETAIN_SEPERATOR}}}","$0")', $codestr);
 					$codes = explode(";", $codestr);
 					if (count($codes) === 0) continue;
 					foreach($codes as $code) {
+						// put back ; which were within surrounding quotes
+						$code = str_replace("{{{RETAIN_SEPERATOR}}}", ";", $code);
 						$code = trim($code);
 						list($codekey, $codevalue) = explode(":", $code, 2);
 						if (strlen($codekey) === 0) continue;
 						array_push($css[$key], Array(
-							"type" => trim($codekey), 
+							"type" => trim($codekey),
 							"value" => trim($codevalue))
 						);
 					}
@@ -566,7 +570,7 @@ class CSS3Maximizer {
 	}
 
 	/* Generate compatibility between vendors */
-	
+
 	public function clean($config) {
 		$css = isset($config['css']) ? $config['css'] : '';
 		$url = isset($config['url']) ? $config['url'] : '';
@@ -577,7 +581,7 @@ class CSS3Maximizer {
 		} else {
 			$this->code = $css;
 		}
-		
+
 		$cssObject = Array();
 		$cssText = "";
 		$css = $this->ParseCSS($this->code);
@@ -644,7 +648,7 @@ class CSS3Maximizer {
 						$merged = true;
 					} else if ($typeof == "array" && $property["value"][$type]) {
 						if ($type === "filter") {
-							$value = Array( 
+							$value = Array(
 								"filter" => $type.": ".$value
 							);
 						}
@@ -654,7 +658,7 @@ class CSS3Maximizer {
 						);
 						$merged = true;
 					} else {
-						
+
 					}
 				}
 				if ($merged === false) {
